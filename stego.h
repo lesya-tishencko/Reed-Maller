@@ -38,14 +38,31 @@ public:
 };
 
 class decrypted_r2_vector : public decrypted_vector {
+protected:
 	virtual Eigen::MatrixXi create_matrix_H();
 public:
+	decrypted_r2_vector() {}
 	decrypted_r2_vector(int m, Eigen::VectorXi & encrypted_vector);
 };
 
 class decrypted_r1_vector : public decrypted_vector {
 public:
+	decrypted_r1_vector() {}
 	decrypted_r1_vector(int m, Eigen::VectorXi & encrypted_vector);
+};
+
+class decrypted_r1_vector_overage : public decrypted_r1_vector{
+	virtual Eigen::MatrixXi create_matrix_H();
+public:
+	decrypted_r1_vector_overage(int m, Eigen::VectorXi & encrypted_vector);
+	virtual Eigen::VectorXi get_decrypted_vector();
+};
+
+class decrypted_r2_vector_overage : public decrypted_r2_vector {
+	virtual Eigen::MatrixXi create_matrix_H();
+public:
+	decrypted_r2_vector_overage(int m, Eigen::VectorXi & encrypted_vector);
+	virtual Eigen::VectorXi get_decrypted_vector();
 };
 
 class encrypted_vector {

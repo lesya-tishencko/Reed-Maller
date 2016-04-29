@@ -321,3 +321,129 @@ Eigen::VectorXi decrypted_vector::get_decrypted_vector() {
 	result -= (result / 2) * 2;
 	return result;
 }
+
+decrypted_r1_vector_overage::decrypted_r1_vector_overage(int m, Eigen::VectorXi & encrypted_vector) {
+	int n = pow(2, m);
+	assert(encrypted_vector.size() == n);
+	this->encrypted_vector = encrypted_vector;
+	this->m = m;
+	this->matrix_H = create_matrix_H();
+}
+
+Eigen::MatrixXi decrypted_r1_vector_overage::create_matrix_H() {
+	Eigen::MatrixXi Ha = decrypted_r1_vector::create_matrix_H();
+	Eigen::MatrixXi H = Ha.transpose() * Ha;
+	return H;
+}
+
+Eigen::VectorXi decrypted_r1_vector_overage::get_decrypted_vector() {
+	Eigen::VectorXi cod_result = decrypted_r1_vector::get_decrypted_vector();
+	Eigen::VectorXi result = Eigen::VectorXi(m + 1);
+	std::set<int> num_set = std::set<int>();
+	for (int i = 0; i < result.size(); i++)
+		num_set.insert(i);
+	std::set<int> curr_set = std::set<int>();
+	int z_count = 0;
+	int o_count = 0;
+	for (int i = m; i > 0; i--) {
+		int ind = 0;
+		curr_set = num_set;
+		for (int j = 0; j < result.size() / 2; j++) {
+			ind = *std::min_element(curr_set.begin(), curr_set.end());
+			curr_set.erase(ind);
+			curr_set.erase(ind + pow(2, m - i));
+			int sum_res = cod_result[ind] + cod_result[ind + pow(2, m - i)];
+			sum_res -= (sum_res / 2) * 2;
+			sum_res == 0 ? z_count++ : o_count++;
+		}
+		z_count > o_count ? result[i] = 0 : result[i] = 1;
+		z_count = 0;
+		o_count = 0;
+	}
+	Eigen::MatrixXi HammMatr = decrypted_r1_vector::create_matrix_H().block(1, 0, m, pow(2, m));
+	Eigen::VectorXi temp = result.segment(1, m).transpose() * HammMatr;
+	cod_result += temp;
+	cod_result -= (cod_result / 2) * 2;
+	for (int i = 0; i < cod_result.size(); i++)
+		cod_result[i] == 0 ? z_count++ : o_count++;
+	z_count > o_count ? result[0] = 0 : result[0] = 1;
+	return result;
+}
+
+decrypted_r2_vector_overage::decrypted_r2_vector_overage(int m, Eigen::VectorXi & encrypted_vector) {
+	int n = pow(2, m);
+	assert(encrypted_vector.size() == n);
+	this->encrypted_vector = encrypted_vector;
+	this->m = m;
+	this->matrix_H = create_matrix_H();
+}
+
+Eigen::MatrixXi decrypted_r2_vector_overage::create_matrix_H() {
+	Eigen::MatrixXi Ha = decrypted_r2_vector::create_matrix_H();
+	Eigen::MatrixXi H = Ha.transpose() * Ha;
+	return H;
+}
+
+Eigen::VectorXi decrypted_r2_vector_overage::get_decrypted_vector() {
+	Eigen::VectorXi cod_result = decrypted_r2_vector::get_decrypted_vector();
+	Eigen::VectorXi result = Eigen::VectorXi(1 + m + (m - 1)*m / 2);
+	std::set<int> num_set = std::set<int>();
+	for (int i = 0; i < result.size(); i++)
+		num_set.insert(i);
+	std::set<int> curr_set = std::set<int>();
+	int z_count = 0;
+	int o_count = 0;
+	int dist_first = 0;
+		int dist_second = dist_first + 1;
+	for (int i = m * (m - 1) / 2 + m; i > m; i--) {
+		int ind = 0;
+		curr_set = num_set;
+		for (int j = 0; j < result.size() / 4; j++) {
+			ind = *std::min_element(curr_set.begin(), curr_set.end());
+			curr_set.erase(ind);
+			curr_set.erase(ind + pow(2, dist_first));
+			curr_set.erase(ind + pow(2, dist_second));
+			curr_set.erase(ind + pow(2, dist_first) + pow(2, dist_second));
+			int sum_res = cod_result[ind] + cod_result[ind + pow(2, dist_first)] + cod_result[ind + pow(2, dist_second)] + cod_result[ind + pow(2, dist_first) + pow(2, dist_second)];
+			sum_res -= (sum_res / 2) * 2;
+			sum_res == 0 ? z_count++ : o_count++;
+		}
+		z_count > o_count ? result[i] = 0 : result[i] = 1;
+		if (dist_first + 1 == dist_second) {
+			dist_first = 0;
+			dist_second++;
+		}
+		else
+			dist_first++;
+		z_count = 0;
+		o_count = 0;
+	}
+	Eigen::MatrixXi LowMatr = decrypted_r2_vector::create_matrix_H().block(1 + m, 0, m * (m - 1) / 2, pow(2, m));
+	Eigen::VectorXi temp = result.segment(1 + m, m * (m - 1) / 2).transpose() * LowMatr;
+	cod_result += temp;
+	cod_result -= (cod_result / 2) * 2;
+
+	for (int i = m; i > 0; i--) {
+		int ind = 0;
+		curr_set = num_set;
+		for (int j = 0; j < result.size() / 2; j++) {
+			ind = *std::min_element(curr_set.begin(), curr_set.end());
+			curr_set.erase(ind);
+			curr_set.erase(ind + pow(2, m - i));
+			int sum_res = cod_result[ind] + cod_result[ind + pow(2, m - i)];
+			sum_res -= (sum_res / 2) * 2;
+			sum_res == 0 ? z_count++ : o_count++;
+		}
+		z_count > o_count ? result[i] = 0 : result[i] = 1;
+		z_count = 0;
+		o_count = 0;
+	}
+	Eigen::MatrixXi HammMatr = decrypted_vector::create_matrix_H().block(1, 0, m, pow(2, m));
+	temp = result.segment(1, m).transpose() * HammMatr;
+	cod_result += temp;
+	cod_result -= (cod_result / 2) * 2;
+	for (int i = 0; i < cod_result.size(); i++)
+		cod_result[i] == 0 ? z_count++ : o_count++;
+	z_count > o_count ? result[0] = 0 : result[0] = 1;
+	return result;
+}
