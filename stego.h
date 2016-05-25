@@ -1,7 +1,7 @@
 #ifndef STEGO_H
 #define STEGO_H
 
-#include "lib.h"
+#include "intruders_channel.h"
 
 std::vector<bool> binary(unsigned value, int count_num);
 unsigned decimal(const Eigen::VectorXi & x, bool source = false);
@@ -9,19 +9,19 @@ unsigned decimal(const Eigen::VectorXi & x, bool source = false);
 class translator {
 protected:
 	int size;
-	std::wstring text;
+	std::string text;
 	const std::set<char> punctual = std::set<char>() = { '&', ' ', '.', ',', ':', ';', '-', '%', '$', '(', ')', '[', ']', '{', '}', '@', '^', '/', '+', '?', '!', '#', '"', '\n' };
 	std::map<char, std::vector<bool>> dictionary_ch_to_vec;
 	std::map<std::vector<bool>, char> dictionary_vec_to_ch;
 	Eigen::VectorXi message;
 	virtual void create_dictionary();
 	virtual Eigen::VectorXi translate_text();
-	virtual std::wstring translate_vector();
+	virtual std::string translate_vector();
 
 public:
-	translator(std::wstring t, int size = 8);
+	translator(std::string t, int size = 8);
 	translator(Eigen::VectorXi & message, int size = 8);
-	std::wstring get_text() { return text; }
+	std::string get_text() { return text; }
 	Eigen::VectorXi get_message() { return message; }
 };
 

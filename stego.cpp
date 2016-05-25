@@ -188,7 +188,7 @@ Eigen::VectorXi encrypted_vector::get_eps(const std::vector<int> & ind) {
 	return eps;
 }
 
-translator::translator(std::wstring text, int size) {
+translator::translator(std::string text, int size) {
 	this->text = text;
 	this->size = size;
 	create_dictionary();
@@ -254,8 +254,8 @@ Eigen::VectorXi translator::translate_text() {
 	return text_matr;
 }
 
-std::wstring translator::translate_vector() {
-	std::wstring result;
+std::string translator::translate_vector() {
+	std::string result;
 	int index = 0;
 	while (true) {
 		std::vector<bool> symbol(size);
@@ -263,7 +263,9 @@ std::wstring translator::translate_vector() {
 			if (i >= message.size()) break;
 			symbol[i % size] = message(i);
 		}
-		result += (char)dictionary_vec_to_ch[symbol];
+		char ch = dictionary_vec_to_ch[symbol];
+		if (ch != 0)
+			result += (char)ch;
 		index += size;
 		if (index >= message.size()) break;
 	}
@@ -337,7 +339,8 @@ Eigen::MatrixXi decrypted_r1_vector_overage::create_matrix_H() {
 }
 
 Eigen::VectorXi decrypted_r1_vector_overage::get_decrypted_vector() {
-	Eigen::VectorXi cod_result = decrypted_r1_vector::get_decrypted_vector();
+	error_r1_editor error_vect = error_r1_editor(decrypted_r1_vector::get_decrypted_vector(), m);
+	Eigen::VectorXi cod_result = error_vect.get_vector_with_error();
 	Eigen::VectorXi result = Eigen::VectorXi(m + 1);
 	std::set<int> num_set = std::set<int>();
 	for (int i = 0; i < result.size(); i++)
@@ -385,7 +388,8 @@ Eigen::MatrixXi decrypted_r2_vector_overage::create_matrix_H() {
 }
 
 Eigen::VectorXi decrypted_r2_vector_overage::get_decrypted_vector() {
-	Eigen::VectorXi cod_result = decrypted_r2_vector::get_decrypted_vector();
+	error_r2_editor error_vect = error_r2_editor(decrypted_r2_vector::get_decrypted_vector(), m);
+	Eigen::VectorXi cod_result = error_vect.get_vector_with_error();
 	Eigen::VectorXi result = Eigen::VectorXi(1 + m + (m - 1)*m / 2);
 	std::set<int> num_set = std::set<int>();
 	for (int i = 0; i < result.size(); i++)
